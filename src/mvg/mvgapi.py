@@ -400,7 +400,7 @@ class MvgApi:
         try:
             args = dict.fromkeys(Endpoint.FIB_LOCATION.value[1])
             args.update({"globalId": station_id})
-            result = await MvgApi.__api(Base.FIB, Endpoint.FIB_DEPARTURE, args)
+            result = await MvgApi.__api(Base.FIB, Endpoint.EXT_DEPARTURE, args)
             assert isinstance(result, list)
 
             departures: list[dict[str, Any]] = []
