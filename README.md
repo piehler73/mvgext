@@ -4,6 +4,7 @@ This package aims to provide a clean, performant and barrier-free interface to t
 
 This package extends the work from mondbaron (https://github.com/mondbaron/mvg) to provide stable functionality even for Munich District Areas (Landkreis München).
 
+
 ## Disclaimer
 
 This project is **not an official project from the Münchner Verkehrsgesellschaft (MVG)**. It was developed as a private project from lack of a documented and openly accessible API. It simply reproduces the requests made by https://www.mvg.de to provide a barrier-free access to local timetable information.
