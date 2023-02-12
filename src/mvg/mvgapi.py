@@ -21,6 +21,7 @@ class Base(Enum):
     """MVG APIs base URLs"""
     FIB = "https://www.mvg.de/api/fib/v2"
     ZDM = "https://www.mvg.de/.rest/zdm"
+    EXT = "https://www.mvg.de/api/fahrinfo"
 
 
 class Endpoint(Enum):
@@ -28,6 +29,7 @@ class Endpoint(Enum):
     FIB_LOCATION: tuple[str, list[str]] = ("/location", ["query"])
     FIB_NEARBY: tuple[str, list[str]] = ("/station/nearby", ["latitude", "longitude"])
     FIB_DEPARTURE: tuple[str, list[str]] = ("/departure", ["globalId", "limit", "offsetInMinutes"])
+    EXT_DEPARTURE: tuple[str, list[str]] = ("/departure", ["footway=0"])
     ZDM_STATION_IDS: tuple[str, list[str]] = ("/mvgStationGlobalIds", [])
     ZDM_STATIONS: tuple[str, list[str]] = ("/stations", [])
     ZDM_LINES: tuple[str, list[str]] = ("/lines", [])
@@ -301,7 +303,7 @@ class MvgApi:
 
             { 'id': 'de:09162:70', 'name': 'Universität', 'place': 'München' }
         """
-        return asyncio.run(MvgApi.nearby_async(latitude, longitude))
+        return asyncio.run(MvgApi.nearby_async(latitude, longitude))  
 
     @staticmethod
     async def departures_async(station_id: str,
@@ -366,6 +368,60 @@ class MvgApi:
         except (AssertionError, KeyError) as exc:
             raise MvgApiError("Bad MVG API call: Invalid departure data") from exc
 
+    @staticmethod
+    async def departures2_async(station_id: str) -> list[dict[str, Any]]:
+        """
+        Retreive the next departures for a station by station id.
+        Using endpoint EXT
+
+        :param station_id: the global station id ('de:09162:70')
+        :raises MvgApiError: raised on communication failure or unexpected result
+        :raises ValueError: raised on bad station id format
+        :return: a list of departures as dictionary
+
+        Example result::
+
+            [{
+                'time': 1668524580,
+                'planned': 1668524460,
+                'line': 'U3',
+                'destination': 'Fürstenried West',
+                'type': 'U-Bahn',
+                'icon': 'mdi:subway',
+                'cancelled': False,
+                'messages': []
+            }, ... ]
+        """
+
+        station_id.strip()
+        if not MvgApi.valid_station_id(station_id):
+            raise ValueError("Invalid format of global staton id.")
+
+        try:
+            args = dict.fromkeys(Endpoint.FIB_LOCATION.value[1])
+            args.update({"globalId": station_id})
+            result = await MvgApi.__api(Base.FIB, Endpoint.FIB_DEPARTURE, args)
+            assert isinstance(result, list)
+
+            departures: list[dict[str, Any]] = []
+            for departure in result:
+                departures.append(
+                    {
+                        "time": int(departure["realtimeDepartureTime"] / 1000),
+                        "planned": int(departure["plannedDepartureTime"] / 1000),
+                        "line": departure["label"],
+                        "destination": departure["destination"],
+                        "type": TransportType[departure["transportType"]].value[0],
+                        "icon": TransportType[departure["transportType"]].value[1],
+                        "cancelled": departure["cancelled"],
+                        "messages": departure["messages"],
+                    }
+                )
+            return departures
+
+        except (AssertionError, KeyError) as exc:
+            raise MvgApiError("Bad MVG API call: Invalid departure data") from exc
+
     def departures(self,
                    limit: int = MVGAPI_DEFAULT_LIMIT,
                    offset: int = 0,
@@ -378,9 +434,8 @@ class MvgApi:
         :param transport_types: filter by transport type, defaults to None
         :raises MvgApiError: raised on communication failure or unexpected result
         :return: a list of departures as dictionary
-
-        Example result::
-            
+        
+        Example result::          
             [{
                 'time': 1668524580,
                 'planned': 1668524460,
@@ -390,7 +445,6 @@ class MvgApi:
                 'icon': 'mdi:subway',
                 'cancelled': False,
                 'messages': []
-            }, ... ]
-            
-        """
+            }, ... ]            
+      """
         return asyncio.run(self.departures_async(self.station_id, limit, offset, transport_types))
