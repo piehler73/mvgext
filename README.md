@@ -1,6 +1,9 @@
-# mvg
+# mvgext
 
 This package aims to provide a clean, performant and barrier-free interface to timetable information of the *Münchner Verkehrsgesellschaft* (MVG), responsible for public transport in Munich. It exports the class `MvgApi` to retrieve stations, lines and departures from the unofficial JSON API at https://www.mvg.de.
+
+This package extends the work from mondbaron (https://github.com/mondbaron/mvg) to provide stable functionality even for Munich District Areas (Landkreis München).
+
 
 ## Disclaimer
 
