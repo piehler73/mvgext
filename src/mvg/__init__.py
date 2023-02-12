@@ -1,4 +1,6 @@
 """
+mvgext
+
 An unofficial interface to timetable information of the Münchner Verkehrsgesellschaft (MVG).
 """
 
