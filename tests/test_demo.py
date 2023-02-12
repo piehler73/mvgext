@@ -1,4 +1,4 @@
-"""Demonstration tests (see README.md)"""
+"""Demonstration tests for mvgext (see README.md)"""
 
 import pytest
 
