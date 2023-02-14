@@ -369,7 +369,7 @@ class MvgApi:
             raise MvgApiError("Bad MVG API call: Invalid departure data") from exc
 
     @staticmethod
-    async def departures2_async(station_id: str) -> list[dict[str, Any]]:
+    async def departures2_async(station_id: str = "") -> list[dict[str, Any]]:
         """
         Retreive the next departures for a station by station id.
         Using endpoint EXT
@@ -393,6 +393,8 @@ class MvgApi:
             }, ... ]
         """
 
+        if (len(station_id) == 0):
+            raise ValueError("Missing global staton id.")
         station_id.strip()
         if not MvgApi.valid_station_id(station_id):
             raise ValueError("Invalid format of global staton id.")
